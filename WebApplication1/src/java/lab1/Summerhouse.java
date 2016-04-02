@@ -6,32 +6,32 @@
 package lab1;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Date;
-import java.util.Objects;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
  * @author darbas
  */
 @Entity
-@Table(name = "SUMMERHOUSE", catalog = "", schema = "APP")
+@Table(catalog = "", schema = "APP", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"TITLE"})})
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Summerhouse.findAll", query = "SELECT s FROM Summerhouse s"),
@@ -47,17 +47,16 @@ public class Summerhouse implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
-    @Column(name = "ID")
+    @Column(nullable = false)
     private Integer id;
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 30)
-    @Column(name = "TITLE")
+    @Column(nullable = false, length = 30)
     private String title;
     @Size(max = 30)
-    @Column(name = "DESCRIPTION")
+    @Column(length = 30)
     private String description;
-    @Column(name = "BEDS")
     private Integer beds;
     @Column(name = "VALIDITY_START")
     @Temporal(TemporalType.DATE)
@@ -65,8 +64,9 @@ public class Summerhouse implements Serializable {
     @Column(name = "VALIDITY_END")
     @Temporal(TemporalType.DATE)
     private Date validityEnd;
-    @OneToMany(mappedBy = "summerhouseId")
-    private Collection<Reservation> reservationCollection;
+    @JoinColumn(name = "OWNER", referencedColumnName = "EMAIL")
+    @ManyToOne
+    private Account owner;
 
     public Summerhouse() {
     }
@@ -128,41 +128,33 @@ public class Summerhouse implements Serializable {
         this.validityEnd = validityEnd;
     }
 
-    @XmlTransient
-    public Collection<Reservation> getReservationCollection() {
-        return reservationCollection;
+    public Account getOwner() {
+        return owner;
     }
 
-    public void setReservationCollection(Collection<Reservation> reservationCollection) {
-        this.reservationCollection = reservationCollection;
+    public void setOwner(Account owner) {
+        this.owner = owner;
     }
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 89 * hash + Objects.hashCode(this.title);
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
         return hash;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof Summerhouse)) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final Summerhouse other = (Summerhouse) obj;
-        if (!Objects.equals(this.title, other.title)) {
+        Summerhouse other = (Summerhouse) object;
+        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
         return true;
     }
-
-    
 
     @Override
     public String toString() {

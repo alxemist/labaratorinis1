@@ -15,6 +15,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -22,6 +24,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -32,7 +35,8 @@ import javax.xml.bind.annotation.XmlTransient;
  * @author darbas
  */
 @Entity
-@Table(name = "ACCOUNT", catalog = "", schema = "APP")
+@Table(catalog = "", schema = "APP", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"EMAIL"})})
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Account.findAll", query = "SELECT a FROM Account a"),
@@ -53,22 +57,22 @@ public class Account implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
-    @Column(name = "ID")
+    @Column(nullable = false)
     private Integer id;
     @Size(max = 30)
-    @Column(name = "EMAIL_CONFIRMATION")
+    @Column(name = "EMAIL_CONFIRMATION", length = 30)
     private String emailConfirmation;
     // @Pattern(regexp="[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", message="Invalid email")//if the field contains email address consider using this annotation to enforce field validation
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 30)
-    @Column(name = "EMAIL")
+    @Column(nullable = false, length = 30)
     private String email;
     @Size(max = 30)
-    @Column(name = "FIRST_NAME")
+    @Column(name = "FIRST_NAME", length = 30)
     private String firstName;
     @Size(max = 30)
-    @Column(name = "LAST_NAME")
+    @Column(name = "LAST_NAME", length = 30)
     private String lastName;
     @Column(name = "NEXT_PAYMENT")
     @Temporal(TemporalType.DATE)
@@ -79,17 +83,20 @@ public class Account implements Serializable {
     @Column(name = "PHONE_NUM")
     private Integer phoneNum;
     @Size(max = 30)
-    @Column(name = "PASSWORD")
+    @Column(length = 30)
     private String password;
     @Size(max = 20)
-    @Column(name = "STATUS")
+    @Column(length = 20)
     private String status;
     @Column(name = "TIME_SPENT_ON_HOLIDAY")
     private Integer timeSpentOnHoliday;
-    @OneToMany(mappedBy = "accountId")
-    private Collection<Reservation> reservationCollection;
+    @JoinTable(name = "PAID_FEES", joinColumns = {
+        @JoinColumn(name = "ACCOUNT_ID", referencedColumnName = "EMAIL", nullable = false)}, inverseJoinColumns = {
+        @JoinColumn(name = "FEE", referencedColumnName = "TITLE", nullable = false)})
     @ManyToMany
-    private Collection<Fee> paidFeesCollection;
+    private Collection<Fee> feeCollection;
+    @OneToMany(mappedBy = "owner")
+    private Collection<Summerhouse> summerhouseCollection;
 
     public Account() {
     }
@@ -192,32 +199,29 @@ public class Account implements Serializable {
     }
 
     @XmlTransient
-    public Collection<Reservation> getReservationCollection() {
-        return reservationCollection;
+    public Collection<Fee> getFeeCollection() {
+        return feeCollection;
     }
 
-    public void setReservationCollection(Collection<Reservation> reservationCollection) {
-        this.reservationCollection = reservationCollection;
+    public void setFeeCollection(Collection<Fee> feeCollection) {
+        this.feeCollection = feeCollection;
     }
 
     @XmlTransient
-    public Collection<Fee> getPaidFeesCollection() {
-        return paidFeesCollection;
+    public Collection<Summerhouse> getSummerhouseCollection() {
+        return summerhouseCollection;
     }
 
-    public void setPaidFeesCollection(Collection<Fee> paidFeesCollection) {
-        this.paidFeesCollection = paidFeesCollection;
+    public void setSummerhouseCollection(Collection<Summerhouse> summerhouseCollection) {
+        this.summerhouseCollection = summerhouseCollection;
     }
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 23 * hash + Objects.hashCode(this.email);
-        hash = 23 * hash + Objects.hashCode(this.phoneNum);
+        int hash = 5;
+        hash = 29 * hash + Objects.hashCode(this.email);
         return hash;
     }
-
-    
 
     @Override
     public boolean equals(Object obj) {
@@ -234,9 +238,6 @@ public class Account implements Serializable {
         if (!Objects.equals(this.email, other.email)) {
             return false;
         }
-        if (!Objects.equals(this.phoneNum, other.phoneNum)) {
-            return false;
-        }
         return true;
     }
 
@@ -246,5 +247,5 @@ public class Account implements Serializable {
     public String toString() {
         return "lab1.Account[ id=" + id + " ]";
     }
-
+    
 }

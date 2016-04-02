@@ -7,7 +7,6 @@ package lab1;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -18,8 +17,8 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -30,7 +29,8 @@ import javax.xml.bind.annotation.XmlTransient;
  * @author darbas
  */
 @Entity
-@Table(name = "FEE", catalog = "", schema = "APP")
+@Table(catalog = "", schema = "APP", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"TITLE"})})
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Fee.findAll", query = "SELECT f FROM Fee f"),
@@ -44,23 +44,21 @@ public class Fee implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
-    @Column(name = "ID")
+    @Column(nullable = false)
     private Integer id;
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 30)
-    @Column(name = "TITLE")
+    @Column(nullable = false, length = 30)
     private String title;
     // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
-    @Column(name = "AMOUNT")
+    @Column(precision = 52)
     private Double amount;
     @Size(max = 254)
-    @Column(name = "DESCRIPTION")
+    @Column(length = 254)
     private String description;
-    @OneToMany(mappedBy = "fee")
-    private Collection<PaidFees> paidFeesCollection;
-    @ManyToMany(mappedBy = "paidFeesCollection")
-    private List<Account> accounts;
+    @ManyToMany(mappedBy = "feeCollection")
+    private Collection<Account> accountCollection;
 
     public Fee() {
     }
@@ -68,7 +66,6 @@ public class Fee implements Serializable {
     public Fee(Integer id) {
         this.id = id;
     }
-    
 
     public Fee(Integer id, String title) {
         this.id = id;
@@ -108,18 +105,18 @@ public class Fee implements Serializable {
     }
 
     @XmlTransient
-    public Collection<PaidFees> getPaidFeesCollection() {
-        return paidFeesCollection;
+    public Collection<Account> getAccountCollection() {
+        return accountCollection;
     }
 
-    public void setPaidFeesCollection(Collection<PaidFees> paidFeesCollection) {
-        this.paidFeesCollection = paidFeesCollection;
+    public void setAccountCollection(Collection<Account> accountCollection) {
+        this.accountCollection = accountCollection;
     }
 
     @Override
     public int hashCode() {
-        int hash = 5;
-        hash = 31 * hash + Objects.hashCode(this.title);
+        int hash = 7;
+        hash = 47 * hash + Objects.hashCode(this.title);
         return hash;
     }
 
@@ -141,6 +138,7 @@ public class Fee implements Serializable {
         return true;
     }
 
+    
     
 
     @Override
