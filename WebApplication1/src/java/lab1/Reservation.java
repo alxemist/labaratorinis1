@@ -7,6 +7,7 @@ package lab1;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -105,23 +106,43 @@ public class Reservation implements Serializable {
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
+        int hash = 3;
+        hash = 31 * hash + Objects.hashCode(this.startDate);
+        hash = 31 * hash + Objects.hashCode(this.endDate);
+        hash = 31 * hash + Objects.hashCode(this.accountId);
+        hash = 31 * hash + Objects.hashCode(this.summerhouseId);
         return hash;
     }
 
     @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Reservation)) {
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
             return false;
         }
-        Reservation other = (Reservation) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Reservation other = (Reservation) obj;
+        if (!Objects.equals(this.startDate, other.startDate)) {
+            return false;
+        }
+        if (!Objects.equals(this.endDate, other.endDate)) {
+            return false;
+        }
+        if (!Objects.equals(this.accountId, other.accountId)) {
+            return false;
+        }
+        if (!Objects.equals(this.summerhouseId, other.summerhouseId)) {
             return false;
         }
         return true;
     }
+
+    
+    
 
     @Override
     public String toString() {
